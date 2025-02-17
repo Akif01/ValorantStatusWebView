@@ -1,4 +1,5 @@
-﻿@using ValorantStatusWebView.API
+﻿@using System.Timers
+@using ValorantStatusWebView.API
 @using ValorantStatusWebView.DataTransferObjects
 @using ValorantStatusWebView.Models
 @inject ApiService Service
@@ -35,15 +36,41 @@
     [Parameter]
     public required Regions Region { get; set; }
 
+    private System.Timers.Timer _timer = new System.Timers.Timer(30000); // 30 seconds;
+
     protected override async Task OnInitializedAsync()
     {
         Model = await FetchModel(Region);
+        _timer.Elapsed += async (sender, e) => await UpdateModel();
+        _timer.Start();
     }
 
     private async Task<PlatformModel> FetchModel(Regions region)
     {
-        return new PlatformModel(
-            await Service.GetAsync<PlatformDataDto>(
-                $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}"));
+        try
+        {
+            return new PlatformModel(
+                await Service.GetAsync<PlatformDataDto>(
+                    $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}"));
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
+    private async Task UpdateModel()
+    {
+        var newModel = await FetchModel(Region);
+        if (Model is null || !Model.Equals(newModel))
+        {
+            Model = newModel;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }
