@@ -2,10 +2,10 @@
 {
     public class PlatformDataDto
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Locales { get; set; }
-        public List<StatusDto> Maintenances { get; set; }
-        public List<StatusDto> Incidents { get; set; }
+        public required string Id { get; set; }
+        public required string Name { get; set; }
+        public required List<string> Locales { get; set; }
+        public required List<StatusDto> Maintenances { get; set; }
+        public required List<StatusDto> Incidents { get; set; }
     }
 }

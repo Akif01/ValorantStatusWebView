@@ -1,20 +1,16 @@
-﻿@attribute [StreamRendering]
-@using System.Text.Json
-@using System.Text.Json.Serialization
-@inject HttpClient Client
+﻿@using ValorantStatusWebView.API
+@using ValorantStatusWebView.DataTransferObjects
+@using ValorantStatusWebView.Models
+@using ValorantStatusWebView.Components.Shared;
+@attribute [StreamRendering]
+@inject ApiService Client
 
 <h3>Valorant Server Status by Akif</h3>
 <div class="statusview-content">
-	@for (int i = 0; i < 10; i++)
-	{
-		<ValorantStatusWebView.Components.Shared.RegionStatusCard Index="i"/>
-	}
+    @{
+        foreach (var region in Enum.GetValues(typeof(RegionStatusCard.Regions)))
+        {
+            <ValorantStatusWebView.Components.Shared.RegionStatusCard Region="(RegionStatusCard.Regions)region" />
+        }
+    }
 </div>
-
-@code {
-	protected async override Task OnInitializedAsync()
-	{
-		
-
-	}
-}

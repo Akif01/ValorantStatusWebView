@@ -1,3 +1,4 @@
+using ValorantStatusWebView.API;
 using ValorantStatusWebView.Components;
 
 namespace ValorantStatusWebView
@@ -10,7 +11,8 @@ namespace ValorantStatusWebView
 
             // Add services to the container.
             builder.Services.AddHttpClient();
-
+            builder.Services.AddScoped<ApiService>();
+            builder.Services.AddSingleton<ConfigurationService>();
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 

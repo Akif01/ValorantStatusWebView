@@ -1,13 +1,49 @@
-﻿<div class="card" style="width: 18rem;">
-    <img class="card-img-top" src="../wwwroot/favicon.png" alt="Card image cap">
+﻿@using ValorantStatusWebView.API
+@using ValorantStatusWebView.DataTransferObjects
+@using ValorantStatusWebView.Models
+@inject ApiService Service
+@inject ConfigurationService ConfigService
+
+<div class="card" style="width: 18rem;">
     <div class="card-body">
-        <h5 class="card-title">Card title</h5>
-        <p class="card-text">Index: @Index</p>
-        <a href="#" class="btn btn-primary">Reload</a>
+        @if (Model is null)
+        {
+            <h5 class="card-title">Loading...</h5>
+        }
+        else
+        {
+            <h5 class="card-title">@Model.RegionName</h5>
+            <p class="card-text" style="color: @(Model.IsAvailable ? "green" : "red")">@(Model.IsAvailable ? "Available" : "Not Available")</p>
+        }
     </div>
 </div>
 
 @code {
+    public enum Regions
+    {
+        ap,
+        br,
+        eu,
+        kr,
+        latam,
+        na,
+    }
+
     [Parameter]
-    public int Index { get; set; }
+    public required PlatformModel Model { get; set; }
+
+    [Parameter]
+    public required Regions Region { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model = await FetchModel(Region);
+    }
+
+    private async Task<PlatformModel> FetchModel(Regions region)
+    {
+        return new PlatformModel(
+            await Service.GetAsync<PlatformDataDto>(
+                $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}"));
+    }
 }

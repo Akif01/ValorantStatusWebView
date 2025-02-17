@@ -4,7 +4,7 @@ namespace ValorantStatusWebView.DataTransferObjects
 {
     public class ContentDto
     {
-        public string Locale { get; set; }
-        public string Content { get; set; }
+        public required string Locale { get; set; }
+        public required string Content { get; set; }
     }
 }
