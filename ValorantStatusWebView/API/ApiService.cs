@@ -1,8 +1,4 @@
-﻿using System.Reflection;
-using ValorantStatusWebView.DataTransferObjects;
-using ValorantStatusWebView.Models;
-
-namespace ValorantStatusWebView.API
+﻿namespace ValorantStatusWebView.API
 {
     public class ApiService
     {
@@ -21,6 +17,5 @@ namespace ValorantStatusWebView.API
             var dto = await response.Content.ReadFromJsonAsync<TDto>();
             return dto;
         }
-
     }
 }

@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValorantStatusWebView", "ValorantStatusWebView\ValorantStatusWebView.csproj", "{BBB08F99-36B4-4194-9DEB-42D398822A01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValorantStatusWebView.Tests", "ValorantStatusWebView.Tests\ValorantStatusWebView.Tests.csproj", "{F0BC4C91-CF53-4A00-A645-2C5429FB2533}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{BBB08F99-36B4-4194-9DEB-42D398822A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBB08F99-36B4-4194-9DEB-42D398822A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBB08F99-36B4-4194-9DEB-42D398822A01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0BC4C91-CF53-4A00-A645-2C5429FB2533}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0BC4C91-CF53-4A00-A645-2C5429FB2533}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0BC4C91-CF53-4A00-A645-2C5429FB2533}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0BC4C91-CF53-4A00-A645-2C5429FB2533}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
