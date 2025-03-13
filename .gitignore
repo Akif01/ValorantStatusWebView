@@ -98,6 +98,5 @@ npm-debug.log
 .gitignore
 
 # Files related to Blazor
-wwwroot/
 node_modules/
 dist/
