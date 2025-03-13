@@ -7,7 +7,12 @@
 
 <div class="card" style="width: 18rem;">
     <div class="card-body">
-        @if (Model is null)
+        @if (HttpRequestException is not null)
+        {
+            <h5 class="card-title">Loading failed!</h5>
+            <p class="card-text" style="color:red">@HttpRequestException.Message</p>
+        }
+        else if (Model is null)
         {
             <h5 class="card-title">Loading...</h5>
         }
@@ -38,6 +43,8 @@
 
     private System.Timers.Timer _timer = new System.Timers.Timer(30000); // 30 seconds;
 
+    private HttpRequestException? HttpRequestException = null;
+
     protected override async Task OnInitializedAsync()
     {
         Model = await FetchModel(Region);
@@ -49,12 +56,15 @@
     {
         try
         {
+            HttpRequestException = null;
+
             return new PlatformModel(
                 await Service.GetAsync<PlatformDataDto>(
                     $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}"));
         }
-        catch (Exception ex)
+        catch (HttpRequestException httpRequestException)
         {
+            HttpRequestException = httpRequestException;
             return null;
         }
     }
