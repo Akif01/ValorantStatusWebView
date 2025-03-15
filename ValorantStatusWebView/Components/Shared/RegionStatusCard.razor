@@ -48,7 +48,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _timer = new System.Timers.Timer(30000); // 30 Sekunden
+        _timer = new System.Timers.Timer(30000); // 30 seconds
         _timer.Elapsed += async (sender, e) => await UpdateModelAsync();
         _timer.AutoReset = true;
 
