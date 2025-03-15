@@ -3,7 +3,6 @@
 @using ValorantStatusWebView.DataTransferObjects
 @using ValorantStatusWebView.Models
 @inject ApiService Service
-@inject ConfigurationService ConfigService
 
 <div class="card" style="width: 18rem;">
     <div class="card-body">
@@ -79,10 +78,7 @@
         try
         {
             ErrorMessage = null;
-            var response = await Service.GetAsync<PlatformDataDto>(
-                $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}");
-
-            return response is not null ? new PlatformModel(response) : null;
+            return await Service.GetPlatformModelAsync(region);
         }
         catch (HttpRequestException httpRequestException)
         {
