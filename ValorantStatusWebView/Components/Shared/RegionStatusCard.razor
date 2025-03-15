@@ -11,15 +11,15 @@
             <h5 class="card-title">Loading failed!</h5>
             <p class="card-text text-danger">@ErrorMessage</p>
         }
-        else if (Model is null)
+        else if (_currentModel is null)
         {
             <h5 class="card-title">Loading...</h5>
         }
         else
         {
-            <h5 class="card-title">@Model.RegionName</h5>
-            <p class="card-text text-@(Model.IsAvailable ? "success" : "danger")">
-                @(Model.IsAvailable ? "Available" : "Not Available")
+            <h5 class="card-title">@_currentModel.RegionName</h5>
+            <p class="card-text text-@(_currentModel.IsAvailable ? "success" : "danger")">
+                @(_currentModel.IsAvailable ? "Available" : "Not Available")
             </p>
         }
     </div>
@@ -37,11 +37,9 @@
     }
 
     [Parameter, EditorRequired]
-    public required PlatformModel Model { get; set; }
-
-    [Parameter, EditorRequired]
     public required Regions Region { get; set; }
 
+    public required PlatformModel _currentModel;
     private System.Timers.Timer? _timer;
     private string? ErrorMessage { get; set; }
     private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
@@ -61,9 +59,9 @@
         try
         {
             var newModel = await FetchModelAsync(Region);
-            if (newModel is not null && !newModel.Equals(Model))
+            if (newModel is not null && !newModel.Equals(_currentModel))
             {
-                Model = newModel;
+                _currentModel = newModel;
                 await InvokeAsync(StateHasChanged);
             }
         }
@@ -89,16 +87,6 @@
         {
             ErrorMessage = $"Unexpected error: {ex.Message}";
             return null;
-        }
-    }
-
-    public void Dispose()
-    {
-        if (_timer is not null)
-        {
-            _timer.Stop();
-            _timer.Elapsed -= async (sender, e) => await UpdateModelAsync();
-            _timer.Dispose();
         }
     }
 }
