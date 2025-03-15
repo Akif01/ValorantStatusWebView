@@ -7,10 +7,10 @@
 
 <div class="card" style="width: 18rem;">
     <div class="card-body">
-        @if (HttpRequestException is not null)
+        @if (HasError)
         {
             <h5 class="card-title">Loading failed!</h5>
-            <p class="card-text" style="color:red">@HttpRequestException.Message</p>
+            <p class="card-text text-danger">@ErrorMessage</p>
         }
         else if (Model is null)
         {
@@ -19,7 +19,9 @@
         else
         {
             <h5 class="card-title">@Model.RegionName</h5>
-            <p class="card-text" style="color: @(Model.IsAvailable ? "green" : "red")">@(Model.IsAvailable ? "Available" : "Not Available")</p>
+            <p class="card-text text-@(Model.IsAvailable ? "success" : "danger")">
+                @(Model.IsAvailable ? "Available" : "Not Available")
+            </p>
         }
     </div>
 </div>
@@ -35,52 +37,72 @@
         na,
     }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public required PlatformModel Model { get; set; }
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public required Regions Region { get; set; }
 
-    private System.Timers.Timer _timer = new System.Timers.Timer(30000); // 30 seconds;
-
-    private HttpRequestException? HttpRequestException = null;
+    private System.Timers.Timer? _timer;
+    private string? ErrorMessage { get; set; }
+    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
     protected override async Task OnInitializedAsync()
     {
-        Model = await FetchModel(Region);
-        _timer.Elapsed += async (sender, e) => await UpdateModel();
+        _timer = new System.Timers.Timer(30000); // 30 Sekunden
+        _timer.Elapsed += async (sender, e) => await UpdateModelAsync();
+        _timer.AutoReset = true;
+
+        await UpdateModelAsync();
         _timer.Start();
     }
 
-    private async Task<PlatformModel> FetchModel(Regions region)
+    private async Task UpdateModelAsync()
     {
         try
         {
-            HttpRequestException = null;
-
-            return new PlatformModel(
-                await Service.GetAsync<PlatformDataDto>(
-                    $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}"));
+            var newModel = await FetchModelAsync(Region);
+            if (newModel is not null && !newModel.Equals(Model))
+            {
+                Model = newModel;
+                await InvokeAsync(StateHasChanged);
+            }
         }
-        catch (HttpRequestException httpRequestException)
+        catch (Exception ex)
         {
-            HttpRequestException = httpRequestException;
-            return null;
+            ErrorMessage = ex.Message;
         }
     }
 
-    private async Task UpdateModel()
+    private async Task<PlatformModel?> FetchModelAsync(Regions region)
     {
-        var newModel = await FetchModel(Region);
-        if (Model is null || !Model.Equals(newModel))
+        try
         {
-            Model = newModel;
-            await InvokeAsync(StateHasChanged);
+            ErrorMessage = null;
+            var response = await Service.GetAsync<PlatformDataDto>(
+                $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={ConfigService.ApiKey}");
+
+            return response is not null ? new PlatformModel(response) : null;
+        }
+        catch (HttpRequestException httpRequestException)
+        {
+            ErrorMessage = httpRequestException.Message;
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Unexpected error: {ex.Message}";
+            return null;
         }
     }
 
     public void Dispose()
     {
-        _timer?.Dispose();
+        if (_timer is not null)
+        {
+            _timer.Stop();
+            _timer.Elapsed -= async (sender, e) => await UpdateModelAsync();
+            _timer.Dispose();
+        }
     }
 }
