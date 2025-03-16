@@ -99,8 +99,6 @@ namespace ValorantStatusWebView.Tests
 
     public class ConfigurationServiceStub : ConfigurationService
     {
-        public new string ApiKey => "ApiKey";
-
         public ConfigurationServiceStub()
             : base(CreateMockConfiguration().Object)
         {
