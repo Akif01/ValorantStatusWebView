@@ -2,7 +2,10 @@
 @using ValorantStatusWebView.API
 @using ValorantStatusWebView.DataTransferObjects
 @using ValorantStatusWebView.Models
+@using Microsoft.AspNetCore.Components
 @inject ApiService Service
+@implements IDisposable
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="card" style="width: 18rem;">
     <div class="card-body">
@@ -14,6 +17,7 @@
         else if (_currentModel is null)
         {
             <h5 class="card-title">Loading...</h5>
+            <div class="spinner-border" role="status"></div>
         }
         else
         {
@@ -21,6 +25,7 @@
             <p class="card-text text-@(_currentModel.IsAvailable ? "success" : "danger")">
                 @(_currentModel.IsAvailable ? "Available" : "Not Available")
             </p>
+            <small class="text-muted">Last updated: @_lastUpdated.ToString("g")</small>
         }
     </div>
 </div>
@@ -33,25 +38,38 @@
         eu,
         kr,
         latam,
-        na,
+        na
     }
 
     [Parameter, EditorRequired]
     public required Regions Region { get; set; }
 
-    public required PlatformModel _currentModel;
+    [Parameter]
+    public int RefreshIntervalSeconds { get; set; } = 30;
+
+    private PlatformModel? _currentModel;
     private System.Timers.Timer? _timer;
     private string? _errorMessage;
+    private DateTime _lastUpdated = DateTime.Now;
     private bool HasError => !string.IsNullOrEmpty(_errorMessage);
+    private bool _isDisposed;
 
     protected override async Task OnInitializedAsync()
     {
-        _timer = new System.Timers.Timer(30000); // 30 seconds
-        _timer.Elapsed += async (sender, e) => await UpdateModelAsync();
+        await UpdateModelAsync();
+
+        _timer = new System.Timers.Timer(RefreshIntervalSeconds * 1000);
+        _timer.Elapsed += OnTimerElapsed;
         _timer.AutoReset = true;
+        _timer.Start();
+    }
+
+    private async void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (_isDisposed)
+            return;
 
         await UpdateModelAsync();
-        _timer.Start();
     }
 
     private async Task UpdateModelAsync()
@@ -59,15 +77,25 @@
         try
         {
             var newModel = await FetchModelAsync(Region);
-            if (newModel is not null && !newModel.Equals(_currentModel))
+            if (newModel is not null && (_currentModel is null || !newModel.Equals(_currentModel)))
             {
                 _currentModel = newModel;
-                await InvokeAsync(StateHasChanged);
+                _lastUpdated = DateTime.Now;
+
+                if (!_isDisposed)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
             }
         }
         catch (Exception ex)
         {
             _errorMessage = ex.Message;
+
+            if (!_isDisposed)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
@@ -87,6 +115,19 @@
         {
             _errorMessage = $"Unexpected error: {ex.Message}";
             return null;
+        }
+    }
+
+    public void Dispose()
+    {
+        _isDisposed = true;
+
+        if (_timer != null)
+        {
+            _timer.Elapsed -= OnTimerElapsed;
+            _timer.Stop();
+            _timer.Dispose();
+            _timer = null;
         }
     }
 }
