@@ -9,7 +9,7 @@
         @if (HasError)
         {
             <h5 class="card-title">Loading failed!</h5>
-            <p class="card-text text-danger">@ErrorMessage</p>
+            <p class="card-text text-danger">@_errorMessage</p>
         }
         else if (_currentModel is null)
         {
@@ -41,8 +41,8 @@
 
     public required PlatformModel _currentModel;
     private System.Timers.Timer? _timer;
-    private string? ErrorMessage { get; set; }
-    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string? _errorMessage;
+    private bool HasError => !string.IsNullOrEmpty(_errorMessage);
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,7 +67,7 @@
         }
         catch (Exception ex)
         {
-            ErrorMessage = ex.Message;
+            _errorMessage = ex.Message;
         }
     }
 
@@ -75,17 +75,17 @@
     {
         try
         {
-            ErrorMessage = null;
+            _errorMessage = null;
             return await Service.GetPlatformModelAsync(region);
         }
         catch (HttpRequestException httpRequestException)
         {
-            ErrorMessage = httpRequestException.Message;
+            _errorMessage = httpRequestException.Message;
             return null;
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Unexpected error: {ex.Message}";
+            _errorMessage = $"Unexpected error: {ex.Message}";
             return null;
         }
     }
