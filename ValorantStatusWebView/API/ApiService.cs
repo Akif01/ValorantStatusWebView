@@ -20,7 +20,7 @@ namespace ValorantStatusWebView.API
             return $"https://{region}.api.riotgames.com/val/status/v1/platform-data?api_key={_configService.ApiKey}";
         }
 
-        public async Task<PlatformModel?> GetPlatformModelAsync(Regions region)
+        public async Task<PlatformModel?> GetPlatformModelAsync(Regions region, CancellationToken cancellationToken = default)
         {
             var url = GetBaseUrl(region);
             var response = await GetAsync<PlatformDataDto>(url);
@@ -28,12 +28,12 @@ namespace ValorantStatusWebView.API
             return response is not null ? new PlatformModel(response) : null;
         }
 
-        public async Task<TDto?> GetAsync<TDto>(string url)
+        public async Task<TDto?> GetAsync<TDto>(string url, CancellationToken cancellationToken = default)
             where TDto : class
         {
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<TDto>();
+            return await response.Content.ReadFromJsonAsync<TDto>(cancellationToken);
         }
     }
 }
