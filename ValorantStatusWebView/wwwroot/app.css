@@ -50,8 +50,12 @@ h1:focus {
     border-color: #929292;
 }
 
-.statusview-content{
+.statusview-content {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
+
+#btn-refresh {
+    width: 100%;
 }

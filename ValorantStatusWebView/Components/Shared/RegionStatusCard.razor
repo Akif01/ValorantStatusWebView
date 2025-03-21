@@ -1,23 +1,26 @@
 ﻿@using System.Timers
+@using System.Threading
 @using ValorantStatusWebView.API
 @using ValorantStatusWebView.DataTransferObjects
 @using ValorantStatusWebView.Models
 @using Microsoft.AspNetCore.Components
 @inject ApiService Service
-@implements IDisposable
+@implements IAsyncDisposable
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="card" style="width: 18rem;">
     <div class="card-body">
-        @if (HasError)
+        @if (_state == ComponentState.Error)
         {
             <h5 class="card-title">Loading failed!</h5>
             <p class="card-text text-danger">@_errorMessage</p>
         }
-        else if (_currentModel is null)
+        else if (_state == ComponentState.Loading || _currentModel is null)
         {
             <h5 class="card-title">Loading...</h5>
-            <div class="spinner-border" role="status"></div>
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         }
         else
         {
@@ -27,6 +30,17 @@
             </p>
             <small class="text-muted">Last updated: @_lastUpdated.ToString("g")</small>
         }
+
+        <button id="btn-refresh" class="btn btn-primary mt-3" @onclick="OnManualRefreshClickedAsync" disabled="@IsCooldownActive">
+            @if (IsCooldownActive)
+            {
+                <span>Refresh in @_remainingCooldown s</span>
+            }
+            else
+            {
+                <span>Refresh</span>
+            }
+        </button>
     </div>
 </div>
 
@@ -41,6 +55,13 @@
         na
     }
 
+    private enum ComponentState
+    {
+        Loading,
+        Loaded,
+        Error
+    }
+
     [Parameter, EditorRequired]
     public required Regions Region { get; set; }
 
@@ -48,54 +69,58 @@
     public int RefreshIntervalSeconds { get; set; } = 30;
 
     private PlatformModel? _currentModel;
-    private System.Timers.Timer? _timer;
+    private System.Timers.Timer? _autoRefreshTimer;
+    private System.Timers.Timer? _manualRefreshTimer;
     private string? _errorMessage;
     private DateTime _lastUpdated = DateTime.Now;
-    private bool HasError => !string.IsNullOrEmpty(_errorMessage);
-    private bool _isDisposed;
+    private int _remainingCooldown;
+    private ComponentState _state = ComponentState.Loading;
+    private CancellationTokenSource _cts = new();
+
+    private bool IsCooldownActive => _manualRefreshTimer?.Enabled ?? false;
 
     protected override async Task OnInitializedAsync()
     {
         await UpdateModelAsync();
 
-        _timer = new System.Timers.Timer(RefreshIntervalSeconds * 1000);
-        _timer.Elapsed += OnTimerElapsed;
-        _timer.AutoReset = true;
-        _timer.Start();
+        _autoRefreshTimer = new System.Timers.Timer(TimeSpan.FromSeconds(RefreshIntervalSeconds).TotalMilliseconds);
+        _autoRefreshTimer.Elapsed += OnAutoRefreshElapsed;
+        _autoRefreshTimer.AutoReset = true;
+        _autoRefreshTimer.Start();
     }
 
-    private async void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    private void OnAutoRefreshElapsed(object? sender, ElapsedEventArgs e)
     {
-        if (_isDisposed)
+        if (_cts.IsCancellationRequested)
             return;
 
-        await UpdateModelAsync();
+        _ = InvokeAsync(async () =>
+        {
+            await UpdateModelAsync();
+            StateHasChanged();
+        });
     }
 
     private async Task UpdateModelAsync()
     {
+        _lastUpdated = DateTime.Now;
+
         try
         {
+            _state = ComponentState.Loading;
             var newModel = await FetchModelAsync(Region);
+
             if (newModel is not null && (_currentModel is null || !newModel.Equals(_currentModel)))
             {
                 _currentModel = newModel;
-                _lastUpdated = DateTime.Now;
-
-                if (!_isDisposed)
-                {
-                    await InvokeAsync(StateHasChanged);
-                }
             }
+
+            _state = ComponentState.Loaded;
         }
         catch (Exception ex)
         {
             _errorMessage = ex.Message;
-
-            if (!_isDisposed)
-            {
-                await InvokeAsync(StateHasChanged);
-            }
+            _state = ComponentState.Error;
         }
     }
 
@@ -109,28 +134,84 @@
         catch (HttpRequestException httpRequestException)
         {
             _errorMessage = httpRequestException.Message;
-            return null;
+            throw;
         }
         catch (Exception ex)
         {
             _errorMessage = $"Unexpected error: {ex.Message}";
-            return null;
+            throw;
         }
     }
 
-    public void Dispose()
+    private async Task OnManualRefreshClickedAsync()
     {
-        if (_isDisposed)
+        if (IsCooldownActive)
             return;
 
-        _isDisposed = true;
+        StartManualRefreshCooldown();
+        await UpdateModelAsync();
+    }
 
-        if (_timer != null)
+    private void StartManualRefreshCooldown()
+    {
+        _remainingCooldown = RefreshIntervalSeconds;
+
+        DisposeManualRefreshTimer();
+        _manualRefreshTimer = new System.Timers.Timer(1000);
+        _manualRefreshTimer.Elapsed += OnCooldownElapsed;
+        _manualRefreshTimer.AutoReset = true;
+        _manualRefreshTimer.Start();
+    }
+
+    private void OnCooldownElapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (_cts.IsCancellationRequested)
+            return;
+
+        _ = InvokeAsync(() =>
         {
-            _timer.Elapsed -= OnTimerElapsed;
-            _timer.Stop();
-            _timer.Dispose();
-            _timer = null;
+            _remainingCooldown--;
+
+            if (_remainingCooldown <= 0)
+            {
+                DisposeManualRefreshTimer();
+            }
+
+            StateHasChanged();
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _cts.Cancel();
+
+        DisposeAutoRefreshTimer();
+        DisposeManualRefreshTimer();
+
+        _cts.Dispose();
+
+        await ValueTask.CompletedTask;
+    }
+
+    private void DisposeAutoRefreshTimer()
+    {
+        if (_autoRefreshTimer != null)
+        {
+            _autoRefreshTimer.Stop();
+            _autoRefreshTimer.Elapsed -= OnAutoRefreshElapsed;
+            _autoRefreshTimer.Dispose();
+            _autoRefreshTimer = null;
+        }
+    }
+
+    private void DisposeManualRefreshTimer()
+    {
+        if (_manualRefreshTimer != null)
+        {
+            _manualRefreshTimer.Stop();
+            _manualRefreshTimer.Elapsed -= OnCooldownElapsed;
+            _manualRefreshTimer.Dispose();
+            _manualRefreshTimer = null;
         }
     }
 }
