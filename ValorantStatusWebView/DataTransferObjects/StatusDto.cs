@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace ValorantStatusWebView.DataTransferObjects
 {
@@ -20,12 +19,12 @@ namespace ValorantStatusWebView.DataTransferObjects
         [JsonPropertyName("created_at")]
         public required string CreatedAt { get; set; }
 
-        [JsonPropertyName("archived_at")]
+        [JsonPropertyName("archive_at")]
         public required string ArchivedAt { get; set; }
 
         [JsonPropertyName("updated_at")]
         public required string UpdatedAt { get; set; }
 
-        public required string Platforms { get; set; }
+        public required List<string> Platforms { get; set; }
     }
 }

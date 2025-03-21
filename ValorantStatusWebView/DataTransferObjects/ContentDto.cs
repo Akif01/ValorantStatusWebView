@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace ValorantStatusWebView.DataTransferObjects
+﻿namespace ValorantStatusWebView.DataTransferObjects
 {
     public class ContentDto
     {
