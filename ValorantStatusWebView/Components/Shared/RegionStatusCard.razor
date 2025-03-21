@@ -9,15 +9,15 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="card" style="width: 18rem;">
-    <div class="card-body">
+    <div id="region-status-card-body" class="card-body">
         @if (_state == ComponentState.Error)
         {
-            <h5 class="card-title">Loading failed!</h5>
+            <h5 class="card-title">Loading of region '@Region' failed!</h5>
             <p class="card-text text-danger">@_errorMessage</p>
         }
         else if (_state == ComponentState.Loading || _currentModel is null)
         {
-            <h5 class="card-title">Loading...</h5>
+            <h5 class="card-title">Loading region '@Region'...</h5>
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
