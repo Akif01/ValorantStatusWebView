@@ -108,7 +108,7 @@
         try
         {
             _state = ComponentState.Loading;
-            var newModel = await FetchModelAsync(Region);
+            var newModel = await FetchModelAsync(Region, _cts.Token);
 
             if (newModel is not null && (_currentModel is null || !newModel.Equals(_currentModel)))
             {
@@ -124,12 +124,12 @@
         }
     }
 
-    private async Task<PlatformModel?> FetchModelAsync(Regions region)
+    private async Task<PlatformModel?> FetchModelAsync(Regions region, CancellationToken cancellationToken)
     {
         try
         {
             _errorMessage = null;
-            return await Service.GetPlatformModelAsync(region);
+            return await Service.GetPlatformModelAsync(region, cancellationToken);
         }
         catch (HttpRequestException httpRequestException)
         {
