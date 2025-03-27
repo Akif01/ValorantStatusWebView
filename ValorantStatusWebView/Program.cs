@@ -9,8 +9,11 @@ namespace ValorantStatusWebView
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add console logging
+            builder.Logging.AddConsole();
+
             // Add services to the container.
-            builder.Services.AddHttpClient<ApiService>();
+            builder.Services.AddHttpClient<IApiService, ApiService>();
             builder.Services.AddSingleton<ConfigurationService>();
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();

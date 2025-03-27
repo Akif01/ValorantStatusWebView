@@ -6,6 +6,7 @@ using System.Text.Json;
 using ValorantStatusWebView.API;
 using static ValorantStatusWebView.Components.Shared.RegionStatusCard;
 using ValorantStatusWebView.DataTransferObjects;
+using Microsoft.Extensions.Logging;
 
 namespace ValorantStatusWebView.Tests
 {
@@ -28,7 +29,8 @@ namespace ValorantStatusWebView.Tests
             };
 
             _configServiceStub = new ConfigurationServiceStub();
-            _apiService = new ApiService(_httpClient, _configServiceStub);
+            var loggerMock = new Mock<ILogger<ApiService>>();
+            _apiService = new ApiService(_httpClient, _configServiceStub, loggerMock.Object);
         }
 
         [TestMethod]
