@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using ValorantStatusWebView.API;
 using ValorantStatusWebView.Components;
 
@@ -17,6 +18,12 @@ namespace ValorantStatusWebView
             builder.Services.AddSingleton<ConfigurationService>();
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo("/app/keys")) // Persistent storage
+                .SetApplicationName("ValorantStatusWebView"); // Shared app name
+            
+            builder.Configuration.AddKeyPerFile("/run/secrets", optional: true);
 
             var app = builder.Build();
 

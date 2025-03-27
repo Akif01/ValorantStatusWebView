@@ -78,6 +78,7 @@ $RECYCLE.BIN/
 
 # Environment variables and configurations
 *.env
+valorant_api_key.txt
 
 # Logs and traces
 *.log
