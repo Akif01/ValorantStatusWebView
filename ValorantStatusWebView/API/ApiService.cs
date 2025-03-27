@@ -68,7 +68,10 @@ namespace ValorantStatusWebView.API
                 // Add headers if provided
                 if (headers != null)
                 {
-                    request.Headers.Add("X-Riot-Token", headers.GetValues("X-Riot-Token").First());
+                    foreach (var header in headers)
+                    {
+                        request.Headers.Add(header.Key, header.Value);
+                    }
                 }
 
                 // Configure request to timeout after a reasonable period
