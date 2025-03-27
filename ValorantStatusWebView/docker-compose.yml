@@ -1,0 +1,38 @@
+services:
+  blazor_server:
+    build: .
+    container_name: valorant-status-web-view
+    secrets:
+      - valorant_api_key
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - valorant_data_protection_keys:/app/keys
+    networks:
+      - blazor_net
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-reverse-proxy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - blazor_server
+    networks:
+      - blazor_net
+    restart: unless-stopped
+
+volumes:
+  valorant_data_protection_keys:
+
+secrets:
+  valorant_api_key:
+    file: ./valorant_api_key.txt
+
+networks:
+  blazor_net:
+    driver: bridge
