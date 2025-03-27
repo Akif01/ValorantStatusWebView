@@ -7,6 +7,7 @@ using ValorantStatusWebView.API;
 using static ValorantStatusWebView.Components.Shared.RegionStatusCard;
 using ValorantStatusWebView.DataTransferObjects;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 
 namespace ValorantStatusWebView.Tests
 {
@@ -102,7 +103,7 @@ namespace ValorantStatusWebView.Tests
     public class ConfigurationServiceStub : ConfigurationService
     {
         public ConfigurationServiceStub()
-            : base(CreateMockConfiguration().Object)
+            : base(CreateMockConfiguration().Object, CreateMockLogger().Object, CreateMockHostEnvironment().Object)
         {
         }
 
@@ -111,11 +112,25 @@ namespace ValorantStatusWebView.Tests
             var mockConfiguration = new Mock<IConfiguration>();
 
             mockConfiguration
-                .Setup(config => config["VALORANT_API_KEY"])
+                .Setup(config => config["valorant_api_key"])
                 .Returns("test-api-key");
 
             return mockConfiguration;
         }
-    }
 
+        private static Mock<ILogger<ConfigurationService>> CreateMockLogger()
+        {
+            var mockLogger = new Mock<ILogger<ConfigurationService>>();
+            return mockLogger;
+        }
+
+        private static Mock<IHostEnvironment> CreateMockHostEnvironment()
+        {
+            var mockEnvironment = new Mock<IHostEnvironment>();
+            mockEnvironment
+                .Setup(m => m.EnvironmentName)
+                .Returns("Test");
+            return mockEnvironment;
+        }
+    }
 }
