@@ -35,11 +35,11 @@
         <button id="btn-refresh" class="btn btn-primary mt-3" @onclick="OnManualRefreshClickedAsync" disabled="@IsCooldownActive">
             @if (IsCooldownActive)
             {
-                <span>Refresh in @_remainingCooldown s</span>
+                <span>Manual refresh available in @_remainingCooldown s</span>
             }
             else
             {
-                <span>Refresh</span>
+                <span>Refresh manually</span>
             }
         </button>
     </div>
