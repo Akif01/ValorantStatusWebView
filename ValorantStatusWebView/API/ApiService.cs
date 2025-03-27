@@ -33,10 +33,10 @@ namespace ValorantStatusWebView.API
             try
             {
                 var url = GetURL(region);
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Add("X-Riot-Token", _configService.ApiKey);
+                var headers = new HttpRequestMessage().Headers;
+                headers.Add("X-Riot-Token", _configService.ApiKey);
 
-                var response = await GetAsync<PlatformDataDto>(url, cancellationToken, request.Headers);
+                var response = await GetAsync<PlatformDataDto>(url, cancellationToken, headers);
 
                 return response is not null ? new PlatformModel(response) : null;
             }
