@@ -111,12 +111,16 @@
             _state = ComponentState.Loading;
             var newModel = await FetchModelAsync(Region, _cts.Token);
 
-            if (newModel is not null && (_currentModel is null || !newModel.Equals(_currentModel)))
+            if (newModel is null)
+            {
+                _state = ComponentState.Error;
+                _errorMessage = "Model is null";
+            }
+            else if (_currentModel is null || !newModel.Equals(_currentModel))
             {
                 _currentModel = newModel;
+                _state = ComponentState.Loaded;
             }
-
-            _state = ComponentState.Loaded;
         }
         catch (Exception ex)
         {
