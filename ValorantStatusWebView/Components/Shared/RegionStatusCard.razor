@@ -114,13 +114,15 @@
             if (newModel is null)
             {
                 _state = ComponentState.Error;
-                _errorMessage = "Model is null";
+                _errorMessage = "Failed fetching data!";
             }
             else if (_currentModel is null || !newModel.Equals(_currentModel))
             {
                 _currentModel = newModel;
                 _state = ComponentState.Loaded;
             }
+            else
+                _state = ComponentState.Loaded;
         }
         catch (Exception ex)
         {
