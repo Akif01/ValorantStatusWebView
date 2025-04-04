@@ -30,31 +30,13 @@ namespace ValorantStatusWebView.API
 
         public async Task<PlatformModel?> GetPlatformModelAsync(Regions region, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var url = GetURL(region);
-                var headers = new HttpRequestMessage().Headers;
-                headers.Add("X-Riot-Token", _configService.ApiKey);
+            var url = GetURL(region);
+            var headers = new HttpRequestMessage().Headers;
+            headers.Add("X-Riot-Token", _configService.ApiKey);
 
-                var response = await GetAsync<PlatformDataDto>(url, cancellationToken, headers);
+            var response = await GetAsync<PlatformDataDto>(url, cancellationToken, headers);
 
-                return response is not null ? new PlatformModel(response) : null;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "Error fetching platform data for region {Region}", region);
-                throw;
-            }
-            catch (OperationCanceledException ex)
-            {
-                _logger.LogWarning(ex, "Platform data request for region {Region} was cancelled", region);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Unexpected error while requesting platform data for region '{Region}'", region);
-                throw;
-            }
+            return response is not null ? new PlatformModel(response) : null;
         }
 
         public async Task<TDto?> GetAsync<TDto>(
@@ -88,12 +70,6 @@ namespace ValorantStatusWebView.API
 
                 var response = await _httpClient.SendAsync(request, linkedCts.Token);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    _logger.LogError("Unauthorized access. Check API key validity.");
-                    throw new UnauthorizedAccessException("Invalid API key or insufficient permissions.");
-                }
-
                 response.EnsureSuccessStatusCode();
 
                 jsonOptions ??= new JsonSerializerOptions
@@ -109,23 +85,21 @@ namespace ValorantStatusWebView.API
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "HTTP request failed for URL: {Url}", url);
-                throw;
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "JSON deserialization error for URL: {Url}", url);
-                throw;
             }
             catch (OperationCanceledException ex)
             {
                 _logger.LogWarning(ex, "Request to {Url} was cancelled or timed out", url);
-                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Unexpected error while sending GET request to {Url}", url);
-                throw;
             }
+
+            return null;
         }
     }
 }
