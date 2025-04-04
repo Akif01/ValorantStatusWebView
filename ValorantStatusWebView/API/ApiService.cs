@@ -50,6 +50,11 @@ namespace ValorantStatusWebView.API
                 _logger.LogWarning(ex, "Platform data request for region {Region} was cancelled", region);
                 throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unexpected error while requesting platform data for region '{Region}'", region);
+                throw;
+            }
         }
 
         public async Task<TDto?> GetAsync<TDto>(
@@ -114,6 +119,11 @@ namespace ValorantStatusWebView.API
             catch (OperationCanceledException ex)
             {
                 _logger.LogWarning(ex, "Request to {Url} was cancelled or timed out", url);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unexpected error while sending GET request to {Url}", url);
                 throw;
             }
         }
