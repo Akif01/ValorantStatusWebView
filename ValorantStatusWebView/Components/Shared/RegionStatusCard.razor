@@ -121,6 +121,8 @@
                 _currentModel = newModel;
                 _state = ComponentState.Loaded;
             }
+            else
+                _state = ComponentState.Loaded;
         }
         catch (Exception ex)
         {
