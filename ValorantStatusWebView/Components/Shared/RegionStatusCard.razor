@@ -9,7 +9,7 @@
 @implements IAsyncDisposable
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="card" style="width: 18rem;">
+<div @key=Region class="card" style="width: 18rem;">
     <div id="region-status-card-body" class="card-body">
         @if (_state == ComponentState.Error)
         {
