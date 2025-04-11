@@ -35,7 +35,7 @@ namespace ValorantStatusWebView.Tests
         }
 
         [TestMethod]
-        public async Task GetAsync_ReturnsExpectedDto()
+        public async Task GetDtoAsync_ReturnsExpectedDto()
         {
             // Arrange
             var expectedDto = new TestDto { Id = 1, Name = "Test" };
@@ -56,7 +56,7 @@ namespace ValorantStatusWebView.Tests
                 .ReturnsAsync(httpResponse);
 
             // Act
-            var result = await _apiService.GetAsync<TestDto>("https://test.com/");
+            var result = await _apiService.GetDtoAsync<TestDto>("https://test.com/");
 
             // Assert
             Assert.IsNotNull(result);

@@ -7,7 +7,7 @@ namespace ValorantStatusWebView.API
 {
     public interface IApiService
     {
-        Task<TDto?> GetAsync<TDto>(string url, CancellationToken cancellationToken = default, HttpHeaders? headers = null, JsonSerializerOptions? jsonOptions = null) where TDto : class;
+        Task<TDto?> GetDtoAsync<TDto>(string url, HttpHeaders? headers = null, JsonSerializerOptions? jsonOptions = null, CancellationToken cancellationToken = default) where TDto : class;
         Task<PlatformModel?> GetPlatformModelAsync(Regions region, CancellationToken cancellationToken = default);
     }
 }
