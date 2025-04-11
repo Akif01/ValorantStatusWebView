@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 using ValorantStatusWebView.DataTransferObjects;
 using ValorantStatusWebView.Models;
@@ -10,8 +9,8 @@ namespace ValorantStatusWebView.API
     public class ApiService : IApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly ConfigurationService _configService;
         private readonly ILogger<ApiService> _logger;
+        private readonly string _apiKey;
 
         public ApiService(
             HttpClient httpClient,
@@ -19,8 +18,8 @@ namespace ValorantStatusWebView.API
             ILogger<ApiService> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _configService = configService ?? throw new ArgumentNullException(nameof(configService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _apiKey = configService.ApiKey;
         }
 
         private string GetURL(Regions region)
@@ -32,18 +31,18 @@ namespace ValorantStatusWebView.API
         {
             var url = GetURL(region);
             var headers = new HttpRequestMessage().Headers;
-            headers.Add("X-Riot-Token", _configService.ApiKey);
+            headers.Add("X-Riot-Token", _apiKey);
 
-            var response = await GetAsync<PlatformDataDto>(url, cancellationToken, headers);
+            var response = await GetDtoAsync<PlatformDataDto>(url, headers, cancellationToken: cancellationToken);
 
             return response is not null ? new PlatformModel(response) : null;
         }
 
-        public async Task<TDto?> GetAsync<TDto>(
+        public async Task<TDto?> GetDtoAsync<TDto>(
             string url,
-            CancellationToken cancellationToken = default,
             HttpHeaders? headers = null,
-            JsonSerializerOptions? jsonOptions = null)
+            JsonSerializerOptions? jsonOptions = null,
+            CancellationToken cancellationToken = default)
             where TDto : class
         {
             try
@@ -84,19 +83,19 @@ namespace ValorantStatusWebView.API
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "HTTP request failed for URL: {Url}", url);
+                _logger.LogError(ex, "HTTP request failed for URL: '{Url}'", url);
             }
             catch (JsonException ex)
             {
-                _logger.LogError(ex, "JSON deserialization error for URL: {Url}", url);
+                _logger.LogError(ex, "JSON deserialization error for URL: '{Url}'", url);
             }
             catch (OperationCanceledException ex)
             {
-                _logger.LogWarning(ex, "Request to {Url} was cancelled or timed out", url);
+                _logger.LogWarning(ex, "Request to '{Url}' was cancelled or timed out", url);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Unexpected error while sending GET request to {Url}", url);
+                _logger.LogWarning(ex, "Unexpected error while sending GET request to '{Url}'", url);
             }
 
             return null;
