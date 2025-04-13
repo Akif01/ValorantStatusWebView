@@ -17,8 +17,14 @@ WORKDIR /app
 # Create directory for DataProtection keys
 RUN mkdir -p /app/keys && chmod 777 /app/keys
 
+# Copy published output from build stage
 COPY --from=build /app/publish .
 
+# Create dummy valorant_api_key.txt if not provided
+RUN [ ! -f /app/valorant_api_key.txt ] && echo "dummy_api_key_12345" > /app/valorant_api_key.txt || true
+
+# Expose port and set env
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+
 ENTRYPOINT ["dotnet", "ValorantStatusWebView.dll"]
